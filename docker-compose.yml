@@ -1,0 +1,9 @@
+version: '3'
+services:
+  ocr-cpu:
+    image: ocr-cpu
+    restart: always
+    hostname: ocr-cpu
+    container_name: ocr-cpu
+    ports:
+      - 8866:8866
