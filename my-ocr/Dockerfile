@@ -5,17 +5,22 @@ MAINTAINER xiaoyu "xiaoyu@sulg.top"
 COPY ./requirements.txt /requirements.txt
 
 WORKDIR /
+RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
+RUN apt update
+RUN apt install libgl1-mesa-glx -y
 RUN pip config set global.index-url https://mirror.baidu.com/pypi/simple
 RUN pip install --upgrade pip
-RUN pip install paddlepaddle==2.3.0 -i https://mirror.baidu.com/pypi/simple
-RUN pip install  opencv-python==4.5.5.64 opencv-contrib-python==4.5.5.64 paddleocr --no-cache-dir
+RUN pip install paddlepaddle==2.3.0
+RUN pip install opencv-python-headless==4.4.0.46 opencv-contrib-python==4.4.0.46 paddleocr==2.5.0.2
 RUN pip install Flask==2.1.2 Flask_RESTFul==0.3.9
+RUN pip install -r requirements.txt
+RUN pip install protobuf==3.20.1
+RUN mkdir image
 
 COPY . /
-RUN pip show paddlepaddle
 
 
-ENTRYPOINT [ "python3" ]
+ENTRYPOINT [ "python" ]
 EXPOSE 8866
 
 CMD [ "app/app.py" ]

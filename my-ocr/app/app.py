@@ -8,7 +8,7 @@ from flask_restful import Api,Resource
 def distinguish_img(img_path):
     # Paddleocr目前支持的多语言语种可以通过修改lang参数进行切换
     # 例如`ch`, `en`, `fr`, `german`, `korean`, `japan`
-    ocr = PaddleOCR(use_angle_cls=True, lang="ch")  # need to run only once to download and load model into memory
+    ocr = PaddleOCR(use_angle_cls=True, lang="ch",enable_mkldnn=True, use_gpu=False)  # need to run only once to download and load model into memory
     result = ocr.ocr(img_path, cls=True)
     return result
     os.remove(img_path)
@@ -47,4 +47,4 @@ class DistinguishView(Resource):
 
 api.add_resource(DistinguishView, '/distinguish')
 if __name__ == '__main__':
-    app.run(debug=False, port=8866)
+    app.run(debug=False, host='0.0.0.0', port=8866)
