@@ -3,16 +3,14 @@ Description:
 Author: xianpengfei
 LastEditors: xianpengfei
 Date: 2022-05-26 21:02:23
-LastEditTime: 2022-06-11 12:07:53
+LastEditTime: 2022-06-11 14:04:07
 '''
 from paddleocr import PaddleOCR, draw_ocr
 import os, base64
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_restful import Api,Resource
-import paddle
-from paddlespeech.cli.asr import ASRExecutor
-from paddlespeech.cli.text import TextExecutor
-from paddlespeech.server.bin.paddlespeech_client import ASROnlineClientExecutor
+import jieba
+import numpy as np
 
 
 
@@ -53,8 +51,19 @@ class ImageView(Resource):
             datas.append(res)
         return {'code': 200, 'msg': 'ok', 'data': str(datas)}
 
+class JieBaView(Resource):
+  def get(self):
+    test_sent = """
+    数学是一门基础性的大学课程，深度学习是基于数学的，尤其是线性代数课程
+    """
+    words = jieba.cut(test_sent)
+    data = np.array(list(words))
+    print(data)
+    return {'code': 200, 'msg': 'ok', 'data': 1}
+
 
 api.add_resource(ImageView, '/image-to-text')
+api.add_resource(JieBaView, '/jieba-text')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8866)
