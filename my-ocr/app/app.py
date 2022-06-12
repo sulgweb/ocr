@@ -10,7 +10,10 @@ import os, base64
 from flask import Flask, request, jsonify
 from flask_restful import Api,Resource
 import jieba
+import jieba.analyse as analyse
+import json
 import numpy as np
+import base64
 
 
 
@@ -20,7 +23,16 @@ def distinguish_img(img_path):
     # 例如`ch`, `en`, `fr`, `german`, `korean`, `japan`
     ocr = PaddleOCR(use_angle_cls=True, lang="ch",enable_mkldnn=True, use_gpu=False, use_tensorrt= True)  # need to run only once to download and load model into memory
     result = ocr.ocr(img_path, cls=True)
-    return result
+    res = []
+    for item in result:
+        res.append({
+            "coords": item[0],
+            "data": {
+                "text":item[1][0],
+                "value": item[1][1]
+            }
+        })
+    return res
     os.remove(img_path)
 
 # base64转图片
@@ -38,28 +50,63 @@ api = Api(app)
 def hello_world():
     return 'AI - 识别服务'
 
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NpEncoder, self).default(obj)
+
 class ImageView(Resource):
     def get(self):
         return {'code':200,'msg':'plese use post method!!!'}
     def post(self):
-        file_path = 'app/image/test.png'
+        file_path = './image/test.png'
         images = request.json.get('images')
         datas = []
         for item in images:
             base64_to_img(item, file_path)
             res = distinguish_img(file_path)
             datas.append(res)
+        print(np.array(datas).tolist())
         return {'code': 200, 'msg': 'ok', 'data': str(datas)}
 
 class JieBaView(Resource):
-  def get(self):
-    test_sent = """
-    数学是一门基础性的大学课程，深度学习是基于数学的，尤其是线性代数课程
-    """
-    words = jieba.cut(test_sent)
-    data = np.array(list(words))
-    print(data)
-    return {'code': 200, 'msg': 'ok', 'data': 1}
+  def post(self):
+    form = request.json
+    print(form)
+
+    topK = form.get('topK', 100)
+    body = form.get('body', 'hello')
+    excludes = form.get('excludes', [])
+
+    cut_all = bool(form.get('is_cut_all', False))
+
+    data = analyse.extract_tags(body, topK=topK, withWeight=True)
+
+    newList = []
+
+    for x in data:
+        if x[0] in excludes:
+            print('not')
+        else:
+            newList.append({
+                "data": x[0],
+                "value": x[1]
+            })
+
+    print(newList)
+
+    return {
+        'code': 200,
+        'msg': 'ok',
+        'datas': newList,
+    }
 
 
 api.add_resource(ImageView, '/image-to-text')
