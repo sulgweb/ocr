@@ -1,9 +1,9 @@
 '''
 Description: 
 Author: xianpengfei
-LastEditors: xianpengfei
+LastEditors: xiaoyu
 Date: 2022-05-26 21:02:23
-LastEditTime: 2022-06-11 14:04:07
+LastEditTime: 2022-07-05 21:12:34
 '''
 from paddleocr import PaddleOCR, draw_ocr
 import os, base64
@@ -14,8 +14,11 @@ import jieba.analyse as analyse
 import json
 import numpy as np
 import base64
+import warnings
+import re
 
-
+# 过滤掉警示信息
+warnings.filterwarnings("ignore")
 
 # 图片识别
 def distinguish_img(img_path):
@@ -37,6 +40,7 @@ def distinguish_img(img_path):
 
 # base64转图片
 def base64_to_img(bstr, file_path):
+    bstr = re.sub(r"^data:image\/\w+;base64,", '', bstr)
     imgdata = base64.b64decode(bstr)
     file = open(file_path, 'wb')
     file.write(imgdata)
@@ -74,7 +78,7 @@ class ImageView(Resource):
             res = distinguish_img(file_path)
             datas.append(res)
         print(np.array(datas).tolist())
-        return {'code': 200, 'msg': 'ok', 'data': str(datas)}
+        return jsonify({'code': 200, 'msg': 'ok', 'data': datas})
 
 class JieBaView(Resource):
   def post(self):
