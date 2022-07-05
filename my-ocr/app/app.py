@@ -3,7 +3,7 @@ Description:
 Author: xianpengfei
 LastEditors: xiaoyu
 Date: 2022-05-26 21:02:23
-LastEditTime: 2022-07-05 21:12:34
+LastEditTime: 2022-07-05 22:17:21
 '''
 from paddleocr import PaddleOCR, draw_ocr
 import os, base64
@@ -78,6 +78,12 @@ class ImageView(Resource):
             res = distinguish_img(file_path)
             datas.append(res)
         print(np.array(datas).tolist())
+        for f_ in datas:
+            for cup in f_:
+                for i in range(len(cup["coords"])):
+                    cup["coords"][i][0] = float(cup["coords"][i][0])
+                    cup["coords"][i][1] = float(cup["coords"][i][1])
+                cup["data"]["value"] = float(cup["data"]["value"])
         return jsonify({'code': 200, 'msg': 'ok', 'data': datas})
 
 class JieBaView(Resource):
